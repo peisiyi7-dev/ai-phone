@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Phone · 智能体</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="phone">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span id="phoneTime">12:00</span>
+            <div class="status-right">
+                <span>5G</span>
+                <span>▮▮▮</span>
+                <span>🔋</span>
+            </div>
+        </div>
+
+        <div class="screen">
+            <!-- ========== 主页 ========== -->
+            <div id="homePage" class="page active">
+                <div class="home-header">
+                    <div>
+                        <div class="small-text">🌤️ 美好的一天</div>
+                        <h1>我的手机</h1>
+                    </div>
+                    <div class="avatar">✨</div>
+                </div>
+                <div class="date-card">
+                    <div id="dateText">今天</div>
+                    <div class="weather">☀️</div>
+                </div>
+                <div class="app-grid">
+                    <div class="app" onclick="openChat()">
+                        <div class="app-icon chat-icon">💬</div>
+                        <span>聊天</span>
+                    </div>
+                    <div class="app" onclick="openAgentManager()">
+                        <div class="app-icon agent-icon">🤖</div>
+                        <span>智能体</span>
+                    </div>
+                    <div class="app" onclick="toggleCollection()">
+                        <div class="app-icon collection-icon">☆</div>
+                        <span>收藏</span>
+                    </div>
+                    <div class="app" onclick="openSettings()">
+                        <div class="app-icon setting-icon">⚙️</div>
+                        <span>设置</span>
+                    </div>
+                </div>
+                <div class="notification" onclick="openChat()">
+                    <div class="notification-icon">💬</div>
+                    <div class="notification-content">
+                        <strong>小狐狸</strong>
+                        <p>你在干什么呢？</p>
+                    </div>
+                    <span class="notification-time">刚刚</span>
+                </div>
+            </div>
+
+            <!-- ========== 聊天页面 ========== -->
+            <div id="chatPage" class="page">
+                <div class="chat-header">
+                    <button class="back-button" onclick="goHome()">←</button>
+                    <div class="character-avatar" id="chatAvatar">🦊</div>
+                    <div class="character-info" style="flex:1; cursor:pointer;" onclick="openAgentManager()">
+                        <strong id="chatAgentName">小狐狸</strong>
+                        <span id="chatAgentStatus">在线</span>
+                    </div>
+                    <button class="agent-switch-btn" onclick="openAgentManager()" title="切换智能体">⚙️</button>
+                </div>
+                <div id="messageArea" class="message-area"></div>
+                <div class="chat-input-area">
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" multiple />
+                    <button class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+                    <input type="text" id="messageInput" placeholder="输入消息或选择图片……" onkeydown="handleEnter(event)" />
+                    <button onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+
+            <!-- ========== 智能体管理页面 ========== -->
+            <div id="agentManagerPage" class="page">
+                <div class="simple-header">
+                    <button class="back-button" onclick="goHome()">←</button>
+                    <h2>我的智能体</h2>
+                    <button class="add-agent-btn" onclick="showCreateAgentForm()">＋</button>
+                </div>
+                <div id="agentList" class="agent-list"></div>
+                <!-- 创建/编辑表单（默认隐藏） -->
+                <div id="agentFormContainer" style="display:none; padding:20px 16px;">
+                    <div class="agent-form">
+                        <h3 id="formTitle">创建智能体</h3>
+                        <label>名称 <input type="text" id="agentFormName" placeholder="例如：小助手" /></label>
+                        <label>头像 (Emoji) <input type="text" id="agentFormEmoji" placeholder="🤖" maxlength="2" /></label>
+                        <label>系统提示词 <textarea id="agentFormPrompt" placeholder="你是一个温柔的助手……"></textarea></label>
+                        <label>API 类型 
+                            <select id="agentFormApiType">
+                                <option value="openai">OpenAI</option>
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="custom">自定义 (OpenAI格式)</option>
+                            </select>
+                        </label>
+                        <label>API 地址 <input type="text" id="agentFormApiUrl" placeholder="https://api.openai.com/v1/chat/completions" /></label>
+                        <label>API Key <input type="password" id="agentFormApiKey" placeholder="sk-..." /></label>
+                        <label>模型 <input type="text" id="agentFormModel" placeholder="gpt-3.5-turbo" /></label>
+                        <div style="display:flex; gap:10px; margin-top:12px;">
+                            <button class="btn-primary" onclick="saveAgent()">保存</button>
+                            <button class="btn-secondary" onclick="cancelAgentForm()">取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 设置页面 ========== -->
+            <div id="settingsPage" class="page">
+                <div class="simple-header">
+                    <button class="back-button" onclick="goHome()">←</button>
+                    <h2>设置</h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-item" onclick="toggleDarkMode()">
+                        <span><span class="emoji">🌙</span> 深色模式</span>
+                        <label class="switch"><input type="checkbox" id="darkModeToggle" /><span class="slider"></span></label>
+                    </div>
+                    <div class="setting-item" onclick="toggleNotification()">
+                        <span><span class="emoji">🔔</span> 消息通知</span>
+                        <label class="switch"><input type="checkbox" id="notifToggle" checked /><span class="slider"></span></label>
+                    </div>
+                    <div class="setting-item" onclick="showToast('📱 版本 V1.4 · 支持图片识别')">
+                        <span><span class="emoji">📱</span> 手机版本</span>
+                        <span>V1.4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="phone-bottom">
+            <button onclick="goHome()">⌂</button>
+            <button onclick="openChat()">●</button>
+            <button onclick="openSettings()">□</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
