@@ -33,7 +33,19 @@ app.post('/v1/chat/completions', async (req, res) => {
         });
 
         const data = await response.json();
-      console.log('响应数据:', JSON.stringify(data));
+
+        // 修复：如果 content 为空但 reasoning_content 存在，就用 reasoning_content 作为 content
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            const msg = data.choices[0].message;
+            if (!msg.content && msg.reasoning_content) {
+                msg.content = msg.reasoning_content;
+            }
+        }
+
+        // 打印响应数据（方便调试）
+        console.log('响应数据:', JSON.stringify(data));
+
+        // 将 AI 的回复返回给前端
         res.status(response.status).json(data);
     } catch (error) {
         console.error('代理出错:', error);
