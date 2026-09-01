@@ -10,7 +10,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ==========修复1：放大JSON大小限制==========
+// JSON解析放大到10MB，必须放在路由前面！
 app.use(express.json({ limit:"10mb" }));
 
 // 代理转发接口
@@ -21,7 +21,7 @@ app.post('/v1/chat/completions', async (req, res) => {
         return res.status(400).json({ error: 'Missing Authorization header (API Key)' });
     }
     try {
-        // ==========修复2：设置超时60秒，图片推理耗时久==========
+        // 设置60秒超时，图片推理耗时久
         const controller = new AbortController();
         const timeoutId = setTimeout(()=>controller.abort(),60000);
 
@@ -37,11 +37,13 @@ app.post('/v1/chat/completions', async (req, res) => {
         clearTimeout(timeoutId);
 
         const data = await response.json();
-        // 修复reasoning_content回填content
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            const msg = data.choices[0].message;
-            if (!msg.content && msg.reasoning_content) {
-                msg.content = msg.reasoning_content;
+        // 修复vision模型content为空，读取reasoning_content
+        if (data?.choices?.length > 0) {
+            const choice = data.choices[0];
+            if(choice?.message){
+                if((!choice.message.content || choice.message.content === "") && choice.message.reasoning_content){
+                    choice.message.content = choice.message.reasoning_content;
+                }
             }
         }
         console.log('响应数据:', JSON.stringify(data));
