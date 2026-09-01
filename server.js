@@ -33,6 +33,7 @@ app.post('/v1/chat/completions', async (req, res) => {
         });
 
         const data = await response.json();
+      console.log('响应数据:', JSON.stringify(data));
         res.status(response.status).json(data);
     } catch (error) {
         console.error('代理出错:', error);
