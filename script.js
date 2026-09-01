@@ -402,7 +402,6 @@ function fileToBase64(file) {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => {
-            // 去掉前缀，只保留base64数据
             const base64 = reader.result.split(',')[1];
             resolve(base64);
         };
@@ -419,12 +418,10 @@ async function sendMessage() {
         showToast('请输入文字或选择图片');
         return;
     }
-    // 构建消息内容数组（多模态）
     const contentParts = [];
     if (msg) {
         contentParts.push({ type: 'text', text: msg });
     }
-    // 处理图片
     for (let file of files) {
         if (!file.type.startsWith('image/')) {
             showToast('只支持图片文件');
@@ -441,21 +438,17 @@ async function sendMessage() {
             console.error(e);
         }
     }
-    // 清空输入和文件选择
     input.value = '';
     fileInput.value = '';
     const agent = getCurrentAgent();
-    // 显示用户消息（只显示文本，图片不显示在消息气泡里，但可以显示“图片”占位）
     let userDisplayText = msg || '📷 图片';
     appendMessageToArea('user', userDisplayText);
     showTyping();
     try {
         let reply = '';
         if (agent.apiKey && agent.apiUrl) {
-            // 调用 API 时传入 contentParts
             reply = await callAIAPI(agent, contentParts);
         } else {
-            // 模拟回复（仅文字）
             reply = getLocalReply(msg, agent);
         }
         hideTyping();
@@ -468,12 +461,10 @@ async function sendMessage() {
 }
 // ========== 调用外部 API（支持多模态） ==========
 async function callAIAPI(agent, userContent) {
-    // 获取历史消息（仅文本，用于上下文）
     const history = loadChatHistory(agent.id);
     const messages = [
         { role: 'system', content: agent.prompt || '你是一个友好的助手。' }
     ];
-    // 取最近 10 条历史（只取文本，因为图片无法存储）
     const recentHistory = history.slice(-10);
     for (const h of recentHistory) {
         if (h.type === 'user') {
@@ -482,7 +473,6 @@ async function callAIAPI(agent, userContent) {
             messages.push({ role: 'assistant', content: h.text });
         }
     }
-    // 当前用户消息（多模态）
     messages.push({ role: 'user', content: userContent });
     const response = await fetch(agent.apiUrl, {
         method: 'POST',
@@ -502,7 +492,11 @@ async function callAIAPI(agent, userContent) {
         throw new Error(`API 错误 (${response.status}): ${errText}`);
     }
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content;
+    const msgObj = data.choices?.[0]?.message;
+    let reply = msgObj?.content;
+    if(!reply && msgObj?.reasoning_content){
+        reply = msgObj.reasoning_content;
+    }
     console.log("模型返回完整data：", data);
     if (!reply) {
         console.error("返回异常data：", data);
