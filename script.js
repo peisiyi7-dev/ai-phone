@@ -1,7 +1,6 @@
 // ======================== 配置 ========================
 // 部署后端后，将下面的地址改为您的 Render 后端地址
 const BACKEND_URL = 'https://ai-phone.onrender.com';
-
 // ======================== 基础 ========================
 function updateTime() {
     const now = new Date();
@@ -11,7 +10,6 @@ function updateTime() {
 }
 updateTime();
 setInterval(updateTime, 1000);
-
 function updateDate() {
     const now = new Date();
     const y = now.getFullYear();
@@ -21,7 +19,6 @@ function updateDate() {
     document.getElementById('dateText').textContent = `${y}年${mo}月${d}日 · ${w}`;
 }
 updateDate();
-
 // ======================== Toast ========================
 function showToast(msg) {
     const old = document.querySelector('.toast');
@@ -32,7 +29,6 @@ function showToast(msg) {
     document.body.appendChild(div);
     setTimeout(() => div.remove(), 2200);
 }
-
 // ======================== 页面切换 ========================
 function hideAllPages() {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -50,7 +46,6 @@ function openAgentManager() {
     document.getElementById('agentManagerPage').classList.add('active');
     renderAgentList();
 }
-
 // ======================== 收藏 ========================
 let isCollected = false;
 function toggleCollection() {
@@ -66,7 +61,6 @@ function toggleCollection() {
         showToast('已取消收藏');
     }
 }
-
 // ======================== 设置交互 ========================
 function toggleDarkMode() {
     const screen = document.querySelector('.screen');
@@ -104,11 +98,9 @@ function toggleNotification() {
         showToast('🔕 通知关闭');
     }
 }
-
 // ======================== 智能体数据管理 ========================
 const STORAGE_KEY = 'aiPhoneAgents';
 const CHAT_HISTORY_KEY = 'aiPhoneChatHistory';
-
 const DEFAULT_AGENT = {
     id: 'default',
     name: '小狐狸',
@@ -119,11 +111,9 @@ const DEFAULT_AGENT = {
     apiKey: '',
     model: 'gpt-3.5-turbo'
 };
-
 let agents = [];
 let currentAgentId = 'default';
 let editingAgentId = null;
-
 // ---------- 智能体数据 ----------
 function loadAgents() {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -144,20 +134,16 @@ function loadAgents() {
     }
     saveAgents();
 }
-
 function saveAgents() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(agents));
 }
-
 function getCurrentAgent() {
     return agents.find(a => a.id === currentAgentId) || agents[0] || DEFAULT_AGENT;
 }
-
 // ---------- 聊天记录 ----------
 function getChatHistoryKey(agentId) {
     return `${CHAT_HISTORY_KEY}_${agentId}`;
 }
-
 function loadChatHistory(agentId) {
     const key = getChatHistoryKey(agentId);
     const stored = localStorage.getItem(key);
@@ -170,12 +156,10 @@ function loadChatHistory(agentId) {
     }
     return [];
 }
-
 function saveChatHistory(agentId, history) {
     const key = getChatHistoryKey(agentId);
     localStorage.setItem(key, JSON.stringify(history));
 }
-
 function addMessageToHistory(agentId, type, text) {
     const history = loadChatHistory(agentId);
     const now = new Date();
@@ -190,7 +174,6 @@ function addMessageToHistory(agentId, type, text) {
     saveChatHistory(agentId, history);
     return history;
 }
-
 // ======================== 渲染聊天记录 ========================
 function renderChatHistory() {
     const area = document.getElementById('messageArea');
@@ -216,7 +199,6 @@ function renderChatHistory() {
     }
     scrollToBottom();
 }
-
 function appendMessageToArea(type, text, timeStr, skipSave) {
     const area = document.getElementById('messageArea');
     const row = document.createElement('div');
@@ -249,24 +231,20 @@ function appendMessageToArea(type, text, timeStr, skipSave) {
     }
     scrollToBottom();
 }
-
 // ======================== 智能体管理界面 ========================
 function renderAgentList() {
     const container = document.getElementById('agentList');
     if (!container) return;
     container.innerHTML = '';
-
     if (agents.length === 0) {
         agents.push({ ...DEFAULT_AGENT, id: 'default' });
         currentAgentId = 'default';
         saveAgents();
     }
-
     agents.forEach(agent => {
         const card = document.createElement('div');
         card.className = 'agent-card';
         const isDefault = agent.id === currentAgentId;
-
         card.innerHTML = `
             <div class="agent-avatar">${agent.emoji || '🤖'}</div>
             <div class="agent-info">
@@ -277,7 +255,6 @@ function renderAgentList() {
             ${isDefault ? '<span class="agent-badge">使用中</span>' : ''}
             <button class="delete-btn" data-id="${agent.id}" title="删除">✕</button>
         `;
-
         card.addEventListener('click', (e) => {
             if (e.target.closest('.delete-btn')) return;
             currentAgentId = agent.id;
@@ -286,7 +263,6 @@ function renderAgentList() {
             updateChatHeader();
             showToast(`已切换到 ${agent.name}`);
         });
-
         const delBtn = card.querySelector('.delete-btn');
         delBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -305,15 +281,12 @@ function renderAgentList() {
                 showToast(`已删除 ${agent.name}`);
             }
         });
-
         card.addEventListener('dblclick', () => {
             editAgent(agent.id);
         });
-
         container.appendChild(card);
     });
 }
-
 // 显示创建表单
 function showCreateAgentForm() {
     editingAgentId = null;
@@ -328,7 +301,6 @@ function showCreateAgentForm() {
     document.getElementById('agentFormContainer').style.display = 'block';
     document.getElementById('agentList').style.display = 'none';
 }
-
 // 编辑智能体
 function editAgent(id) {
     const agent = agents.find(a => a.id === id);
@@ -345,12 +317,10 @@ function editAgent(id) {
     document.getElementById('agentFormContainer').style.display = 'block';
     document.getElementById('agentList').style.display = 'none';
 }
-
 function cancelAgentForm() {
     document.getElementById('agentFormContainer').style.display = 'none';
     document.getElementById('agentList').style.display = 'block';
 }
-
 function saveAgent() {
     const name = document.getElementById('agentFormName').value.trim();
     const emoji = document.getElementById('agentFormEmoji').value.trim() || '🤖';
@@ -359,11 +329,9 @@ function saveAgent() {
     const apiUrl = document.getElementById('agentFormApiUrl').value.trim();
     const apiKey = document.getElementById('agentFormApiKey').value.trim();
     const model = document.getElementById('agentFormModel').value.trim();
-
     if (!name) { showToast('请输入名称'); return; }
     if (!prompt) { showToast('请输入系统提示词'); return; }
     if (!apiUrl) { showToast('请输入API地址'); return; }
-
     if (editingAgentId) {
         const agent = agents.find(a => a.id === editingAgentId);
         if (agent) {
@@ -396,7 +364,6 @@ function saveAgent() {
     renderAgentList();
     updateChatHeader();
 }
-
 // ======================== 聊天页头部更新 ========================
 function updateChatHeader() {
     const agent = getCurrentAgent();
@@ -404,10 +371,8 @@ function updateChatHeader() {
     document.getElementById('chatAgentName').textContent = agent.name || '智能体';
     document.getElementById('chatAgentStatus').textContent = agent.apiKey ? '已连接' : '离线(模拟)';
 }
-
 // ======================== 聊天核心 ========================
 let chatMemory = { userName: null };
-
 function showTyping() {
     const area = document.getElementById('messageArea');
     const existing = document.getElementById('typingIndicator');
@@ -431,7 +396,6 @@ function scrollToBottom() {
     const area = document.getElementById('messageArea');
     setTimeout(() => area.scrollTop = area.scrollHeight, 20);
 }
-
 // ========== 工具：文件转base64 ==========
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -445,25 +409,21 @@ function fileToBase64(file) {
         reader.onerror = error => reject(error);
     });
 }
-
 // ========== 发送消息（支持多模态） ==========
 async function sendMessage() {
     const input = document.getElementById('messageInput');
     const fileInput = document.getElementById('fileInput');
     const msg = input.value.trim();
     const files = fileInput.files;
-
     if (!msg && files.length === 0) {
         showToast('请输入文字或选择图片');
         return;
     }
-
     // 构建消息内容数组（多模态）
     const contentParts = [];
     if (msg) {
         contentParts.push({ type: 'text', text: msg });
     }
-
     // 处理图片
     for (let file of files) {
         if (!file.type.startsWith('image/')) {
@@ -481,19 +441,14 @@ async function sendMessage() {
             console.error(e);
         }
     }
-
     // 清空输入和文件选择
     input.value = '';
     fileInput.value = '';
-
     const agent = getCurrentAgent();
-
     // 显示用户消息（只显示文本，图片不显示在消息气泡里，但可以显示“图片”占位）
     let userDisplayText = msg || '📷 图片';
     appendMessageToArea('user', userDisplayText);
-
     showTyping();
-
     try {
         let reply = '';
         if (agent.apiKey && agent.apiUrl) {
@@ -511,7 +466,6 @@ async function sendMessage() {
         console.error(err);
     }
 }
-
 // ========== 调用外部 API（支持多模态） ==========
 async function callAIAPI(agent, userContent) {
     // 获取历史消息（仅文本，用于上下文）
@@ -530,7 +484,6 @@ async function callAIAPI(agent, userContent) {
     }
     // 当前用户消息（多模态）
     messages.push({ role: 'user', content: userContent });
-
     const response = await fetch(agent.apiUrl, {
         method: 'POST',
         headers: {
@@ -544,24 +497,24 @@ async function callAIAPI(agent, userContent) {
             max_tokens: 500
         })
     });
-
     if (!response.ok) {
         const errText = await response.text();
         throw new Error(`API 错误 (${response.status}): ${errText}`);
     }
-
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content;
-    if (!reply) throw new Error('API 返回格式异常');
+    console.log("模型返回完整data：", data);
+    if (!reply) {
+        console.error("返回异常data：", data);
+        throw new Error('API 返回格式异常');
+    }
     return reply;
 }
-
 // ========== 本地模拟回复（带记忆） ==========
 function getLocalReply(msg, agent) {
     const lower = msg.toLowerCase();
     const name = chatMemory.userName;
     const agentName = agent.name || '智能体';
-
     if (lower.includes('我叫') || lower.includes('我是')) {
         const match = msg.match(/我叫\s*([\u4e00-\u9fa5a-zA-Z]+)|我是\s*([\u4e00-\u9fa5a-zA-Z]+)/);
         if (match) {
@@ -572,7 +525,6 @@ function getLocalReply(msg, agent) {
             }
         }
     }
-
     if (lower.includes('你好') || lower.includes('嗨')) {
         return name ? `嗨 ${name}！我是${agentName}，今天想聊什么？` : `你好！我是${agentName}，很高兴认识你 🌸`;
     }
@@ -587,7 +539,6 @@ function getLocalReply(msg, agent) {
     }
     if (lower.includes('谢谢')) return name ? `不客气 ${name}，和你聊天很开心 😊` : '不客气～';
     if (lower.includes('再见')) return name ? `再见 ${name}，随时来找我玩 👋` : '再见啦～';
-
     const replies = name ? [
         `嗯嗯 ${name}，我听到了，然后呢？`,
         `原来 ${name} 是这样想的，有意思！`,
@@ -603,14 +554,12 @@ function getLocalReply(msg, agent) {
     ];
     return replies[Math.floor(Math.random() * replies.length)];
 }
-
 function handleEnter(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
         sendMessage();
     }
 }
-
 // ======================== 初始化 ========================
 document.addEventListener('DOMContentLoaded', function() {
     loadAgents();
