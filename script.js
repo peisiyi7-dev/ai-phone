@@ -1,6 +1,6 @@
 // ======================== 配置 ========================
 // 部署后端后，将下面的地址改为您的 Render 后端地址
-const BACKEND_URL = 'https://api-phone.onrender.com';
+const BACKEND_URL = 'https://ai-phone.onrender.com';
 
 // ======================== 基础 ========================
 function updateTime() {
