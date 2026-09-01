@@ -3,8 +3,16 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-// 允许所有跨域请求
-app.use(cors());
+// 加强 CORS 配置，允许所有来源、方法和头
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 对 OPTIONS 请求（预检请求）直接返回成功
+app.options('*', cors());
+
 // 解析 JSON 请求体
 app.use(express.json());
 
