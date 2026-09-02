@@ -1,6 +1,7 @@
 // ======================== 配置 ========================
-// 部署后端后，将下面的地址改为您的 cloudflare后端地址
+// 部署后端后，将下面的地址改为您的 Cloudflare Worker 地址
 const BACKEND_URL = 'https://ai-phone.peisiyi7.workers.dev';
+
 // ======================== 基础 ========================
 function updateTime() {
     const now = new Date();
@@ -53,7 +54,6 @@ function toggleDarkMode() {
     const newState = !toggle.checked;
     toggle.checked = newState;
     if (newState) {
-        // 护眼模式：浅灰色背景 + 深色文字
         screen.style.background = '#e8e5e0';
         screen.style.color = '#1a1a1a';
         document.querySelectorAll('.home-header h1, .date-card, .app span, .notification-content strong, .notification-content p, .simple-header h2, .setting-item, .character-info strong, .character-info span, .message-bubble, .message-time')
@@ -247,7 +247,6 @@ function renderAgentList() {
             saveAgents();
             renderAgentList();
             updateChatHeader();
-            // 如果聊天页面当前是激活的，刷新聊天记录
             if (document.getElementById('chatPage').classList.contains('active')) {
                 renderChatHistory();
             }
@@ -354,7 +353,6 @@ function saveAgent() {
     cancelAgentForm();
     renderAgentList();
     updateChatHeader();
-    // 如果聊天页面激活，刷新聊天记录
     if (document.getElementById('chatPage').classList.contains('active')) {
         renderChatHistory();
     }
@@ -454,13 +452,14 @@ async function sendMessage() {
         console.error(err);
     }
 }
-// ========== 调用外部 API（支持多模态 + 自动注入当前时间） ==========
+
+// ========== 调用 AI API（通过 Cloudflare Worker 代理） ==========
 async function callAIAPI(agent, userContent) {
     const history = loadChatHistory(agent.id);
     const now = new Date();
     const timeStr = now.toLocaleString('zh-CN', { hour12: false });
-    // 在系统提示词中注入当前时间，让 AI 感知
     const systemPrompt = agent.prompt + `\n\n当前时间：${timeStr}。请根据当前时间提供合适的回复（例如问候语、时间相关建议等）。`;
+
     const messages = [
         { role: 'system', content: systemPrompt }
     ];
@@ -473,11 +472,15 @@ async function callAIAPI(agent, userContent) {
         }
     }
     messages.push({ role: 'user', content: userContent });
-    const response = await fetch(agent.apiUrl, {
+
+    const proxyUrl = BACKEND_URL + '/v1/chat/completions';
+
+    const response = await fetch(proxyUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${agent.apiKey}`
+            'Authorization': `Bearer ${agent.apiKey}`,
+            'X-Target-Url': agent.apiUrl,
         },
         body: JSON.stringify({
             model: agent.model || 'gpt-3.5-turbo',
@@ -486,6 +489,7 @@ async function callAIAPI(agent, userContent) {
             max_tokens: 500
         })
     });
+
     if (!response.ok) {
         const errText = await response.text();
         throw new Error(`API 错误 (${response.status}): ${errText}`);
@@ -503,6 +507,7 @@ async function callAIAPI(agent, userContent) {
     }
     return reply;
 }
+
 // ========== 本地模拟回复（带记忆 + 时间感知） ==========
 function getLocalReply(msg, agent) {
     const lower = msg.toLowerCase();
