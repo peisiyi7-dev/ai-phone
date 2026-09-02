@@ -1,6 +1,6 @@
 // ======================== 配置 ========================
-// 部署后端后，将下面的地址改为您的 Render 后端地址
-const BACKEND_URL = 'https://ai-phone.onrender.com';
+// 部署后端后，将下面的地址改为您的 cloudflare后端地址
+const BACKEND_URL = 'https://ai-phone.peisiyi7.workers.dev';
 // ======================== 基础 ========================
 function updateTime() {
     const now = new Date();
