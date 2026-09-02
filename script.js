@@ -572,3 +572,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+// ======================== 直接编辑当前智能体 ========================
+function openCurrentAgentEditor() {
+    hideAllPages();
+    document.getElementById('agentManagerPage').classList.add('active');
+    // 刷新列表（确保数据最新）
+    renderAgentList();
+    const agent = getCurrentAgent();
+    if (agent) {
+        editAgent(agent.id);
+    } else {
+        showToast('没有可编辑的智能体');
+    }
+}
