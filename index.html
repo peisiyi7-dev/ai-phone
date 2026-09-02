@@ -32,7 +32,7 @@
                     <div id="dateText">今天</div>
                     <div class="weather">☀️</div>
                 </div>
-                <div class="app-grid">
+                <div class="app-grid" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="app" onclick="openChat()">
                         <div class="app-icon chat-icon">💬</div>
                         <span>聊天</span>
@@ -40,10 +40,6 @@
                     <div class="app" onclick="openAgentManager()">
                         <div class="app-icon agent-icon">🤖</div>
                         <span>智能体</span>
-                    </div>
-                    <div class="app" onclick="toggleCollection()">
-                        <div class="app-icon collection-icon">☆</div>
-                        <span>收藏</span>
                     </div>
                     <div class="app" onclick="openSettings()">
                         <div class="app-icon setting-icon">⚙️</div>
@@ -121,16 +117,16 @@
                 </div>
                 <div class="settings-list">
                     <div class="setting-item" onclick="toggleDarkMode()">
-                        <span><span class="emoji">🌙</span> 深色模式</span>
+                        <span><span class="emoji">🌙</span> 护眼模式（浅灰）</span>
                         <label class="switch"><input type="checkbox" id="darkModeToggle" /><span class="slider"></span></label>
                     </div>
                     <div class="setting-item" onclick="toggleNotification()">
                         <span><span class="emoji">🔔</span> 消息通知</span>
                         <label class="switch"><input type="checkbox" id="notifToggle" checked /><span class="slider"></span></label>
                     </div>
-                    <div class="setting-item" onclick="showToast('📱 版本 V1.4 · 支持图片识别')">
+                    <div class="setting-item" onclick="showToast('📱 版本 V1.5 · 支持时间感知')">
                         <span><span class="emoji">📱</span> 手机版本</span>
-                        <span>V1.4</span>
+                        <span>V1.5</span>
                     </div>
                 </div>
             </div>
