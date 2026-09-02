@@ -46,21 +46,6 @@ function openAgentManager() {
     document.getElementById('agentManagerPage').classList.add('active');
     renderAgentList();
 }
-// ======================== 收藏 ========================
-let isCollected = false;
-function toggleCollection() {
-    isCollected = !isCollected;
-    const icon = document.querySelector('.collection-icon');
-    if (isCollected) {
-        icon.textContent = '⭐';
-        icon.style.background = 'linear-gradient(135deg, #fce38a, #f5b342)';
-        showToast('❤️ 已收藏');
-    } else {
-        icon.textContent = '☆';
-        icon.style.background = 'linear-gradient(135deg, #f5e7c8, #eedbba)';
-        showToast('已取消收藏');
-    }
-}
 // ======================== 设置交互 ========================
 function toggleDarkMode() {
     const screen = document.querySelector('.screen');
@@ -68,21 +53,26 @@ function toggleDarkMode() {
     const newState = !toggle.checked;
     toggle.checked = newState;
     if (newState) {
-        screen.style.background = '#1e1b19';
-        screen.style.color = '#eee';
-        document.querySelectorAll('.home-header h1, .date-card, .app span, .notification-content strong, .notification-content p, .simple-header h2, .setting-item')
-            .forEach(el => el.style.color = '#eee');
-        document.querySelector('.date-card').style.background = 'rgba(40,35,30,0.8)';
-        document.querySelector('.notification').style.background = 'rgba(40,35,30,0.8)';
+        // 护眼模式：浅灰色背景 + 深色文字
+        screen.style.background = '#e8e5e0';
+        screen.style.color = '#1a1a1a';
+        document.querySelectorAll('.home-header h1, .date-card, .app span, .notification-content strong, .notification-content p, .simple-header h2, .setting-item, .character-info strong, .character-info span, .message-bubble, .message-time')
+            .forEach(el => el.style.color = '#1a1a1a');
+        document.querySelector('.date-card').style.background = 'rgba(220,215,205,0.8)';
+        document.querySelector('.notification').style.background = 'rgba(220,215,205,0.8)';
+        document.querySelector('.chat-header').style.background = 'rgba(232,229,224,0.9)';
+        document.querySelector('.chat-input-area').style.background = 'rgba(232,229,224,0.95)';
     } else {
         screen.style.background = '#fcf8f4';
         screen.style.color = '';
-        document.querySelectorAll('.home-header h1, .date-card, .app span, .notification-content strong, .notification-content p, .simple-header h2, .setting-item')
+        document.querySelectorAll('.home-header h1, .date-card, .app span, .notification-content strong, .notification-content p, .simple-header h2, .setting-item, .character-info strong, .character-info span, .message-bubble, .message-time')
             .forEach(el => el.style.color = '');
         document.querySelector('.date-card').style.background = 'rgba(255,255,255,0.7)';
         document.querySelector('.notification').style.background = 'rgba(255,255,255,0.8)';
+        document.querySelector('.chat-header').style.background = 'rgba(252,248,244,0.85)';
+        document.querySelector('.chat-input-area').style.background = 'rgba(252,248,244,0.95)';
     }
-    showToast(newState ? '🌙 深色模式' : '☀️ 浅色模式');
+    showToast(newState ? '🌙 护眼模式（浅灰）' : '☀️ 浅色模式');
 }
 function toggleNotification() {
     const toggle = document.getElementById('notifToggle');
@@ -107,7 +97,7 @@ const DEFAULT_AGENT = {
     emoji: '🦊',
     prompt: '你是一只温柔的小狐狸，用朋友的口吻和用户聊天。',
     apiType: 'openai',
-    apiUrl: BACKEND_URL + '/v1/chat/completions',  // 默认指向后端
+    apiUrl: BACKEND_URL + '/v1/chat/completions',
     apiKey: '',
     model: 'gpt-3.5-turbo'
 };
@@ -179,9 +169,7 @@ function renderChatHistory() {
     const area = document.getElementById('messageArea');
     const agent = getCurrentAgent();
     const history = loadChatHistory(agent.id);
-    
     area.innerHTML = '';
-    
     if (history.length === 0) {
         const defaultMessages = [
             { type: 'character', text: `你好呀 🌸 我是${agent.name}` },
@@ -193,7 +181,6 @@ function renderChatHistory() {
         }
         return;
     }
-    
     for (const msg of history) {
         appendMessageToArea(msg.type, msg.text, msg.time, true);
     }
@@ -208,7 +195,6 @@ function appendMessageToArea(type, text, timeStr, skipSave) {
         const now = new Date();
         return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     })();
-    
     if (type === 'character') {
         row.innerHTML = `
             <div class="message-avatar">${agent.emoji || '🤖'}</div>
@@ -261,6 +247,10 @@ function renderAgentList() {
             saveAgents();
             renderAgentList();
             updateChatHeader();
+            // 如果聊天页面当前是激活的，刷新聊天记录
+            if (document.getElementById('chatPage').classList.contains('active')) {
+                renderChatHistory();
+            }
             showToast(`已切换到 ${agent.name}`);
         });
         const delBtn = card.querySelector('.delete-btn');
@@ -278,6 +268,9 @@ function renderAgentList() {
                 saveAgents();
                 renderAgentList();
                 updateChatHeader();
+                if (document.getElementById('chatPage').classList.contains('active')) {
+                    renderChatHistory();
+                }
                 showToast(`已删除 ${agent.name}`);
             }
         });
@@ -287,7 +280,6 @@ function renderAgentList() {
         container.appendChild(card);
     });
 }
-// 显示创建表单
 function showCreateAgentForm() {
     editingAgentId = null;
     document.getElementById('formTitle').textContent = '创建智能体';
@@ -301,7 +293,6 @@ function showCreateAgentForm() {
     document.getElementById('agentFormContainer').style.display = 'block';
     document.getElementById('agentList').style.display = 'none';
 }
-// 编辑智能体
 function editAgent(id) {
     const agent = agents.find(a => a.id === id);
     if (!agent) return;
@@ -363,6 +354,10 @@ function saveAgent() {
     cancelAgentForm();
     renderAgentList();
     updateChatHeader();
+    // 如果聊天页面激活，刷新聊天记录
+    if (document.getElementById('chatPage').classList.contains('active')) {
+        renderChatHistory();
+    }
 }
 // ======================== 聊天页头部更新 ========================
 function updateChatHeader() {
@@ -459,11 +454,15 @@ async function sendMessage() {
         console.error(err);
     }
 }
-// ========== 调用外部 API（支持多模态） ==========
+// ========== 调用外部 API（支持多模态 + 自动注入当前时间） ==========
 async function callAIAPI(agent, userContent) {
     const history = loadChatHistory(agent.id);
+    const now = new Date();
+    const timeStr = now.toLocaleString('zh-CN', { hour12: false });
+    // 在系统提示词中注入当前时间，让 AI 感知
+    const systemPrompt = agent.prompt + `\n\n当前时间：${timeStr}。请根据当前时间提供合适的回复（例如问候语、时间相关建议等）。`;
     const messages = [
-        { role: 'system', content: agent.prompt || '你是一个友好的助手。' }
+        { role: 'system', content: systemPrompt }
     ];
     const recentHistory = history.slice(-10);
     for (const h of recentHistory) {
@@ -504,23 +503,34 @@ async function callAIAPI(agent, userContent) {
     }
     return reply;
 }
-// ========== 本地模拟回复（带记忆） ==========
+// ========== 本地模拟回复（带记忆 + 时间感知） ==========
 function getLocalReply(msg, agent) {
     const lower = msg.toLowerCase();
     const name = chatMemory.userName;
     const agentName = agent.name || '智能体';
+    const now = new Date();
+    const hour = now.getHours();
+    let greeting = '你好';
+    if (hour < 6) greeting = '深夜了';
+    else if (hour < 9) greeting = '早上好';
+    else if (hour < 12) greeting = '上午好';
+    else if (hour < 14) greeting = '中午好';
+    else if (hour < 18) greeting = '下午好';
+    else if (hour < 21) greeting = '晚上好';
+    else greeting = '夜深了';
+    const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     if (lower.includes('我叫') || lower.includes('我是')) {
         const match = msg.match(/我叫\s*([\u4e00-\u9fa5a-zA-Z]+)|我是\s*([\u4e00-\u9fa5a-zA-Z]+)/);
         if (match) {
             const newName = match[1] || match[2];
             if (newName) {
                 chatMemory.userName = newName;
-                return `好棒的名字！${newName}，我记住你啦～ 我是${agentName}，多多指教 ✨`;
+                return `${greeting}，${newName}！好棒的名字，我记住你啦～ 我是${agentName}，现在时间是${timeStr}，多多指教 ✨`;
             }
         }
     }
     if (lower.includes('你好') || lower.includes('嗨')) {
-        return name ? `嗨 ${name}！我是${agentName}，今天想聊什么？` : `你好！我是${agentName}，很高兴认识你 🌸`;
+        return name ? `${greeting} ${name}！我是${agentName}，现在${timeStr}，今天想聊什么？` : `${greeting}！我是${agentName}，很高兴认识你 🌸 当前时间 ${timeStr}`;
     }
     if (lower.includes('天气')) return '今天天气不错，适合出门走走 ☀️';
     if (lower.includes('名字')) {
@@ -528,8 +538,7 @@ function getLocalReply(msg, agent) {
     }
     if (lower.includes('帮助')) return '你可以和我聊天、告诉我你的名字，我会一直陪着你 💕';
     if (lower.includes('时间')) {
-        const now = new Date();
-        return `现在是 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        return `现在是 ${timeStr}`;
     }
     if (lower.includes('谢谢')) return name ? `不客气 ${name}，和你聊天很开心 😊` : '不客气～';
     if (lower.includes('再见')) return name ? `再见 ${name}，随时来找我玩 👋` : '再见啦～';
@@ -554,29 +563,10 @@ function handleEnter(e) {
         sendMessage();
     }
 }
-// ======================== 初始化 ========================
-document.addEventListener('DOMContentLoaded', function() {
-    loadAgents();
-    updateChatHeader();
-    renderAgentList();
-    
-    const chatPage = document.getElementById('chatPage');
-    if (chatPage.classList.contains('active')) {
-        renderChatHistory();
-    }
-    
-    const chatBtn = document.querySelector('.phone-bottom button:nth-child(2)');
-    if (chatBtn) {
-        chatBtn.addEventListener('click', function() {
-            setTimeout(renderChatHistory, 50);
-        });
-    }
-});
 // ======================== 直接编辑当前智能体 ========================
 function openCurrentAgentEditor() {
     hideAllPages();
     document.getElementById('agentManagerPage').classList.add('active');
-    // 刷新列表（确保数据最新）
     renderAgentList();
     const agent = getCurrentAgent();
     if (agent) {
@@ -585,3 +575,19 @@ function openCurrentAgentEditor() {
         showToast('没有可编辑的智能体');
     }
 }
+// ======================== 初始化 ========================
+document.addEventListener('DOMContentLoaded', function() {
+    loadAgents();
+    updateChatHeader();
+    renderAgentList();
+    const chatPage = document.getElementById('chatPage');
+    if (chatPage.classList.contains('active')) {
+        renderChatHistory();
+    }
+    const chatBtn = document.querySelector('.phone-bottom button:nth-child(2)');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', function() {
+            setTimeout(renderChatHistory, 50);
+        });
+    }
+});
